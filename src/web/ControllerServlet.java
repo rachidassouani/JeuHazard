@@ -1,11 +1,13 @@
 package web;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import metier.JeuHazardMetier;
 
@@ -26,14 +28,50 @@ public class ControllerServlet extends HttpServlet{
 	
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
 		
-		int nb = Integer.parseInt(request.getParameter("nombre"));
-		String msg = metier.jouer(nb);
-		ModelJeuHazard model = new ModelJeuHazard();
-		model.setNb(nb);
-		model.getHistorique().add(msg);
-		request.setAttribute("model", model);
+		HttpSession session = request.getSession();
+		ModelJeuHazard model;
+		if(session.getAttribute("model")== null) {
+			model = new ModelJeuHazard();
+			session.setAttribute("model", model);
+		
+		}else {
+			model = (ModelJeuHazard)session.getAttribute("model");
+		}
+		
+	
+		/*
+		 * If user clicks button Jouer
+		 */
+		if(request.getParameter("jouer").equals("Jouer")) {
+			
+			int nb = Integer.parseInt(request.getParameter("nombre"));
+			String msg = metier.jouer(nb);
+			
+			model.setNb(nb);
+			model.getHistorique().add(msg);
+				
+		}
+		
+		/*
+		 * If user clicks Button Relancer
+		 */
+		else if(request.getParameter("jouer").equals("Relancer")) {
+			
+			// generate a new random number
+			 metier = new JeuHazardMetier();
+			
+			 //finish the game that means set boolean 'Fin' as false
+			 metier.setFin(false);
+			
+			 //Delete History of player
+			 model.setHistorique(new ArrayList<String>());
+		}
+		
+		
+		/*
+		 * Forward to main page that has a name jeu.jsp
+		 */
 		request.getRequestDispatcher("jeu.jsp").forward(request, response);
 	}
 	
